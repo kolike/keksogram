@@ -29,23 +29,45 @@ var PHOTOS_DESCRIPTIONS = [
   "СНОВА БАЙКОНУР",
 ];
 
+var picturesDescriptions = [];
+
 for (var i = MIN_PICTURES_INDEX; i < MAX_PICTRUES_INDEX; i++) {
   var pictureDescription = createPictureDescription(i);
-  renderPicture(pictureDescription);
+  picturesDescriptions.push(pictureDescription);
 }
 
-renderBigPicture(MIN_PICTURES_INDEX);
-hideComments();
-hideMoreCommentsLoader();
+for (var i = 0; i < picturesDescriptions.length - 1; i++) {
+  renderPicture(picturesDescriptions[i]);
+}
 
+renderBigPicture(picturesDescriptions[0]);
+hideComments();
+hideCommentsLoader();
+// TODO: захуячить рандомное кол-во комментов с неповторяющимеся комментами и аватарами петухов, которые их оставляют 
 function createPictureDescription(index) {
   var pictureDescription = {
     url: `photos/${index}.jpg`,
     likes: getRandomNumber(MIN_LIKES_COUNT, MAX_LIKES_COUNT),
-    comments: COMMENTS[getRandomNumber(0, COMMENTS.length - 1)],
+    comments: [
+      {
+        commentText: COMMENTS[getRandomNumber(0, COMMENTS.length - 1)],
+        avatarUrl: `img/avatar-${getRandomNumber(
+          MIN_AVATAR_INDEX,
+          MAX_AVATAR_INDEX
+        )}.svg`,
+      },
+      {
+        commentText: COMMENTS[getRandomNumber(0, COMMENTS.length - 1)],
+        avatarUrl: `img/avatar-${getRandomNumber(
+          MIN_AVATAR_INDEX,
+          MAX_AVATAR_INDEX
+        )}.svg`,
+      },
+    ],
     description:
       PHOTOS_DESCRIPTIONS[getRandomNumber(0, PHOTOS_DESCRIPTIONS.length - 1)],
   };
+
   return pictureDescription;
 }
 
@@ -65,36 +87,38 @@ function renderPicture(pictureDescription) {
   pictureGallery.appendChild(similarPictureElement);
 }
 
-function renderBigPicture(index) {
-  console.log(i);
+function renderBigPicture(pictureDescription) {
   var bigPicture = document.querySelector(".big-picture");
   bigPicture.classList.remove("hidden");
-  bigPicture
-    .querySelector(".big-picture__img")
-    .querySelector("img").src = `photos/${index}.jpg`;
-  document.querySelector(".likes-count").textContent = createPictureDescription(
-    i
-  ).likes;
-  document.querySelector(
-    ".comments-count"
-  ).textContent = createPictureDescription(i).comments.length;
+  bigPicture.querySelector(".big-picture__img").querySelector("img").src =
+    pictureDescription.url;
+  document.querySelector(".likes-count").textContent = pictureDescription.likes;
+  document.querySelector(".comments-count").textContent =
+    pictureDescription.comments.length;
 
-  document.querySelector(
-    ".social__caption"
-  ).textContent = createPictureDescription(i).description;
+  document.querySelector(".social__caption").textContent =
+    pictureDescription.description;
 
-  var socialComments = document
-    .querySelector(".social__comments")
-    .querySelectorAll(".social__comment");
+  var socialCommentsElement = document.querySelector(".social__comments");
 
-  for (var i = 0; i < socialComments.length; i++) {
-    socialComments[i].querySelector("img").src = `img/avatar-${getRandomNumber(
-      MIN_AVATAR_INDEX,
-      MAX_AVATAR_INDEX
-    )}.svg`;
-    socialComments[i].querySelector(
-      "p"
-    ).textContent = createPictureDescription().comments;
+  for (var i = 0; i < pictureDescription.comments.length; i++) {
+    var socialCommentElement = document.createElement("li");
+    socialCommentElement.classList.add("social__comment");
+
+    var avatarPicture = document.createElement("img");
+    avatarPicture.classList.add("social__picture");
+    avatarPicture.alt = "Аватар комментатора фотографии";
+    avatarPicture.width = "35";
+    avatarPicture.height = "35";
+    avatarPicture.src = pictureDescription.comments[i].avatarUrl;
+
+    var commentText = document.createElement("p");
+    commentText.classList.add("social__text");
+    commentText.textContent = pictureDescription.comments[i].commentText;
+
+    socialCommentElement.appendChild(avatarPicture);
+    socialCommentElement.appendChild(commentText);
+    socialCommentsElement.appendChild(socialCommentElement);
   }
 }
 
@@ -109,6 +133,8 @@ function hideComments() {
     .classList.add("visually-hidden");
 }
 
-function hideMoreCommentsLoader() {
-  document.querySelector(".social__loadmore").classList.add("visually-hidden");
+function hideCommentsLoader() {
+  document
+    .querySelector(".social__comments-loader")
+    .classList.add("visually-hidden");
 }
