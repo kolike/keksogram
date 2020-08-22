@@ -10,11 +10,11 @@ var COMMENTS = [
   "В целом не плохо. Но такое...",
   "Палец из кадра стоит убрать, не профессионально",
   "Моя бабуля лучше снимает",
-  "Твоя бабуля лучше снимает",
   "Серьёзно? Это называется фотография?",
   "Горизонт завален",
   "Васильченко и то лучше фотограф",
   "Так он сказал, так он сказааал...",
+  "Очень хорошее фото!",
 ];
 
 var PHOTOS_DESCRIPTIONS = [
@@ -26,24 +26,45 @@ var PHOTOS_DESCRIPTIONS = [
   "Любимые моменты жизни",
   "Это портал!",
   "Скажем так, если пойдет дождь...",
-  "СНОВА БАЙКОНУР",
+  "Лучший мой кадр",
 ];
 
 var picturesDescriptions = [];
+var bigPicture = document.querySelector(".big-picture");
+var uploadFileField = document.querySelector(".img-upload__form");
+var imageUploadOverlay = document.querySelector(".img-upload__overlay");
+var buttonCloseUploadFile = document.querySelector(".img-upload__cancel");
+var buttonCloseBigPicture = document.querySelector(".big-picture__cancel");
+var socialCommentsElement = document.querySelector(".social__comments");
+
+uploadFileField.addEventListener("change", function (event) {
+  event.preventDefault();
+  imageUploadOverlay.classList.remove("hidden");
+});
+
+buttonCloseUploadFile.addEventListener("click", function () {
+  imageUploadOverlay.classList.add("hidden");
+});
+
+buttonCloseBigPicture.addEventListener("click", function () {
+  bigPicture.classList.add("hidden");
+  while (socialCommentsElement.firstChild) {
+    socialCommentsElement.removeChild(socialCommentsElement.firstChild);
+  }
+});
 
 for (var i = MIN_PICTURES_INDEX; i < MAX_PICTRUES_INDEX; i++) {
   var pictureDescription = createPictureDescription(i);
   picturesDescriptions.push(pictureDescription);
 }
 
-for (var i = 0; i < picturesDescriptions.length - 1; i++) {
+for (var i = 0; i < picturesDescriptions.length; i++) {
   renderPicture(picturesDescriptions[i]);
 }
 
-renderBigPicture(picturesDescriptions[0]);
 hideComments();
 hideCommentsLoader();
-// TODO: захуячить рандомное кол-во комментов с неповторяющимеся комментами и аватарами петухов, которые их оставляют 
+
 function createPictureDescription(index) {
   var pictureDescription = {
     url: `photos/${index}.jpg`,
@@ -87,20 +108,7 @@ function renderPicture(pictureDescription) {
   pictureGallery.appendChild(similarPictureElement);
 }
 
-function renderBigPicture(pictureDescription) {
-  var bigPicture = document.querySelector(".big-picture");
-  bigPicture.classList.remove("hidden");
-  bigPicture.querySelector(".big-picture__img").querySelector("img").src =
-    pictureDescription.url;
-  document.querySelector(".likes-count").textContent = pictureDescription.likes;
-  document.querySelector(".comments-count").textContent =
-    pictureDescription.comments.length;
-
-  document.querySelector(".social__caption").textContent =
-    pictureDescription.description;
-
-  var socialCommentsElement = document.querySelector(".social__comments");
-
+renderComment = function (pictureDescription) {
   for (var i = 0; i < pictureDescription.comments.length; i++) {
     var socialCommentElement = document.createElement("li");
     socialCommentElement.classList.add("social__comment");
@@ -120,6 +128,17 @@ function renderBigPicture(pictureDescription) {
     socialCommentElement.appendChild(commentText);
     socialCommentsElement.appendChild(socialCommentElement);
   }
+};
+
+function renderBigPicture(pictureDescription) {
+  bigPicture.classList.remove("hidden");
+  bigPicture.querySelector(".big-picture__img").querySelector("img").src =
+    pictureDescription.url;
+  document.querySelector(".likes-count").textContent = pictureDescription.likes;
+  document.querySelector(".comments-count").textContent =
+    pictureDescription.comments.length;
+  document.querySelector(".social__caption").textContent =
+    pictureDescription.description;
 }
 
 function getRandomNumber(min, max) {
@@ -137,4 +156,17 @@ function hideCommentsLoader() {
   document
     .querySelector(".social__comments-loader")
     .classList.add("visually-hidden");
+}
+
+var pictures = document.querySelectorAll(".picture");
+
+var addPictureClickHandler = function (picture, index) {
+  picture.addEventListener("click", function () {
+    renderBigPicture(picturesDescriptions[index]);
+    renderComment(picturesDescriptions[index]);
+  });
+};
+
+for (var i = 0; i < pictures.length; i++) {
+  addPictureClickHandler(pictures[i], i);
 }
