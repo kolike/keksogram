@@ -531,7 +531,7 @@ main {
   -webkit-box-pack: center;
      -ms-flex-pack: center;
    justify-content: center;
-
+transform: scale(1);
   width: 600px;
   height: 600px;
 

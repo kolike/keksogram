@@ -4,7 +4,7 @@ var MIN_LIKES_COUNT = 15;
 var MAX_LIKES_COUNT = 200;
 var MIN_AVATAR_INDEX = 1;
 var MAX_AVATAR_INDEX = 6;
-var MAX_HASHTAGS_LENGTH = 20;
+var MAX_HASHTAG_LENGTH = 20;
 var MAX_HASHTAGS_COUNT = 5;
 var SCALE_STEP = 25;
 var SCALE_MIN = 25;
@@ -43,17 +43,19 @@ var buttonCloseBigPicture = document.querySelector(".big-picture__cancel");
 var socialCommentsElement = document.querySelector(".social__comments");
 var textHashtags = document.querySelector(".text__hashtags");
 var imgUploadSubmit = document.querySelector(".img-upload__submit");
-var buttonZoomOutLoadedPhoto = document.querySelector(
-  ".scale__control--smaller"
-);
-var buttonZoomInLoadedPhoto = document.querySelector(".scale__control--bigger");
+var scaleDownButton = document.querySelector(".scale__control--smaller");
+var scaleUpButton = document.querySelector(".scale__control--bigger");
 var scaleValue = document.querySelector(".scale__control--value");
 var imageUploadPreview = document.querySelector(".img-upload__preview");
 var effectList = document.querySelectorAll(".effects__radio");
+var textComment = document.querySelector(".text__description");
+var isTextCommentFocused = false;
+var isTextHashtagsFocused = false;
+
 imageUploadPreview.classList.add("effects__preview--none");
 
-buttonZoomOutLoadedPhoto.addEventListener("click", makeScaleDown);
-buttonZoomInLoadedPhoto.addEventListener("click", makeScaleUp);
+scaleDownButton.addEventListener("click", scaleDown);
+scaleUpButton.addEventListener("click", scaleUp);
 
 imgUploadSubmit.addEventListener("click", function () {
   var hashtagsValue = textHashtags.value;
@@ -61,6 +63,22 @@ imgUploadSubmit.addEventListener("click", function () {
   if (errorMessage != null) {
     textHashtags.setCustomValidity(errorMessage);
   }
+});
+
+textComment.addEventListener("focus", function () {
+  isTextCommentFocused = true;
+});
+
+textComment.addEventListener("blur", function () {
+  isTextCommentFocused = false;
+});
+
+textHashtags.addEventListener("focus", function () {
+  isTextHashtagsFocused = true;
+});
+
+textHashtags.addEventListener("blur", function () {
+  isTextHashtagsFocused = false;
 });
 
 textHashtags.addEventListener("input", function () {
@@ -72,8 +90,8 @@ uploadFileForm.addEventListener("change", function () {
   imageUploadOverlay.classList.remove("hidden");
 });
 
-imageUpload.addEventListener("keydown", function (evt) {
-  if (evt.keyCode === 27) {
+window.addEventListener("keydown", function (evt) {
+  if (isEscKeyDown(evt) && !isTextCommentFocused && !isTextHashtagsFocused) {
     imageUploadOverlay.classList.add("hidden");
   }
 });
@@ -89,8 +107,8 @@ buttonCloseBigPicture.addEventListener("click", function () {
   }
 });
 
-bigPicture.addEventListener("keydown", function (evt) {
-  if (evt.keyCode === 27) {
+window.addEventListener("keydown", function (evt) {
+  if (isEscKeyDown(evt) && !isTextCommentFocused && !isTextHashtagsFocused) {
     bigPicture.classList.add("hidden");
   }
 
@@ -164,7 +182,7 @@ function renderPicture(pictureDescription) {
   pictureGallery.appendChild(similarPictureElement);
 }
 
-renderComments = function (pictureDescription) {
+function renderComments(pictureDescription) {
   for (var i = 0; i < pictureDescription.comments.length; i++) {
     var socialCommentElement = document.createElement("li");
     socialCommentElement.classList.add("social__comment");
@@ -184,7 +202,7 @@ renderComments = function (pictureDescription) {
     socialCommentElement.appendChild(commentText);
     socialCommentsElement.appendChild(socialCommentElement);
   }
-};
+}
 
 function renderBigPicture(pictureDescription) {
   bigPicture.classList.remove("hidden");
@@ -227,6 +245,11 @@ function checkValidation(hashtagValue) {
   }
 
   var hashtags = hashtagValue.split(" ");
+
+  if (hashtags.length > MAX_HASHTAGS_COUNT) {
+    return "Нельзя указать больше пяти хэш-тегов";
+  }
+
   for (var i = 0; i < hashtags.length; i++) {
     var hashtag = hashtags[i];
 
@@ -234,13 +257,9 @@ function checkValidation(hashtagValue) {
       return "Хеш-тег не может состоять только из одной решётки";
     } else if (hashtag.charAt(0) !== "#") {
       return "Хэш-тег должен начинаться с символа # (решётка)";
-    } else if (hashtag.length > MAX_HASHTAGS_LENGTH) {
+    } else if (hashtag.length > MAX_HASHTAG_LENGTH) {
       return "Максимальная длина одного хэш-тега 20 символов, включая решётку";
     }
-  }
-
-  if (hashtags.length > MAX_HASHTAGS_COUNT) {
-    return "Нельзя указать больше пяти хэш-тегов";
   }
 
   if (!isHashtagsUnique(hashtags)) {
@@ -253,6 +272,7 @@ function checkValidation(hashtagValue) {
 function isHashtagsUnique(hashtags) {
   for (var i = 0; i < hashtags.length - 1; i++) {
     var firstHashtag = hashtags[i].toLowerCase();
+
     for (var j = i + 1; j < hashtags.length; j++) {
       var secondHashtag = hashtags[j].toLowerCase();
 
@@ -265,28 +285,28 @@ function isHashtagsUnique(hashtags) {
   return true;
 }
 
-function makeScaleDown() {
-  var scaleWas = scaleValue.value;
-  var scaleBecome = scaleWas.substring(0, scaleWas.length - 1) - SCALE_STEP;
+function scaleDown() {
+  var oldScale = scaleValue.value;
+  var newScale = oldScale.substring(0, oldScale.length - 1) - SCALE_STEP;
 
-  if (scaleBecome < SCALE_MIN) {
+  if (newScale < SCALE_MIN) {
     return;
   }
 
-  scaleValue.value = scaleBecome + "%";
-  imageUploadPreview.style.transform = `scale(${scaleBecome / 100})`;
+  scaleValue.value = newScale + "%";
+  imageUploadPreview.style.transform = `scale(${newScale / 100})`;
 }
 
-function makeScaleUp() {
-  var scaleWas = scaleValue.value;
-  var scaleBecome = +scaleWas.substring(0, scaleWas.length - 1) + SCALE_STEP;
+function scaleUp() {
+  var odlScale = scaleValue.value;
+  var newScale = +odlScale.substring(0, odlScale.length - 1) + SCALE_STEP;
 
-  if (scaleBecome > SCALE_MAX) {
+  if (newScale > SCALE_MAX) {
     return;
   }
 
-  scaleValue.value = scaleBecome + "%";
-  imageUploadPreview.style.transform = `scale(${scaleBecome / 100})`;
+  scaleValue.value = newScale + "%";
+  imageUploadPreview.style.transform = `scale(${newScale / 100})`;
 }
 
 function addEffectClickHandler(effect, index) {
@@ -296,13 +316,15 @@ function addEffectClickHandler(effect, index) {
 }
 
 function applyEffect(i) {
-  var effect = effectList[i].value;
-  imageUploadPreview.classList.remove(`effects__preview--none`);
-  imageUploadPreview.classList.remove(`effects__preview--chrome`);
-  imageUploadPreview.classList.remove(`effects__preview--sepia`);
-  imageUploadPreview.classList.remove(`effects__preview--marvin`);
-  imageUploadPreview.classList.remove(`effects__preview--phobos`);
-  imageUploadPreview.classList.remove(`effects__preview--heat`);
+  for (var j = 0; j < effectList.length; j++) {
+    imageUploadPreview.classList.remove(
+      `effects__preview--${effectList[j].value}`
+    );
+  }
 
-  imageUploadPreview.classList.add(`effects__preview--${effect}`);
+  imageUploadPreview.classList.add(`effects__preview--${effectList[i].value}`);
+}
+
+function isEscKeyDown(evt) {
+  return evt.keyCode === 27;
 }
