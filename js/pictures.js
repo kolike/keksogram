@@ -49,6 +49,8 @@ var scaleValue = document.querySelector(".scale__control--value");
 var imageUploadPreview = document.querySelector(".img-upload__preview");
 var effectList = document.querySelectorAll(".effects__radio");
 var textComment = document.querySelector(".text__description");
+var textCommentBigPicture = document.querySelector(".social__footer-text");
+var isTextCommentBigPictureFocused = false;
 var isTextCommentFocused = false;
 var isTextHashtagsFocused = false;
 
@@ -63,6 +65,14 @@ imgUploadSubmit.addEventListener("click", function () {
   if (errorMessage != null) {
     textHashtags.setCustomValidity(errorMessage);
   }
+});
+
+textCommentBigPicture.addEventListener("focus", function () {
+  isTextCommentBigPictureFocused = true;
+});
+
+textCommentBigPicture.addEventListener("blur", function () {
+  isTextCommentBigPictureFocused = false;
 });
 
 textComment.addEventListener("focus", function () {
@@ -90,12 +100,6 @@ uploadFileForm.addEventListener("change", function () {
   imageUploadOverlay.classList.remove("hidden");
 });
 
-window.addEventListener("keydown", function (evt) {
-  if (isEscKeyDown(evt) && !isTextCommentFocused && !isTextHashtagsFocused) {
-    imageUploadOverlay.classList.add("hidden");
-  }
-});
-
 buttonCloseUploadFile.addEventListener("click", function () {
   imageUploadOverlay.classList.add("hidden");
 });
@@ -108,12 +112,18 @@ buttonCloseBigPicture.addEventListener("click", function () {
 });
 
 window.addEventListener("keydown", function (evt) {
-  if (isEscKeyDown(evt) && !isTextCommentFocused && !isTextHashtagsFocused) {
+  if (
+    isEscKeyDown(evt) &&
+    !isTextCommentFocused &&
+    !isTextHashtagsFocused &&
+    !isTextCommentBigPictureFocused
+  ) {
     bigPicture.classList.add("hidden");
-  }
+    imageUploadOverlay.classList.add("hidden");
 
-  while (socialCommentsElement.firstChild) {
-    socialCommentsElement.removeChild(socialCommentsElement.firstChild);
+    while (socialCommentsElement.firstChild) {
+      socialCommentsElement.removeChild(socialCommentsElement.firstChild);
+    }
   }
 });
 
@@ -250,6 +260,10 @@ function checkValidation(hashtagValue) {
     return "Нельзя указать больше пяти хэш-тегов";
   }
 
+  if (!isHashtagsUnique(hashtags)) {
+    return "Один и тот же хэш-тег не может быть использован дважды";
+  }
+
   for (var i = 0; i < hashtags.length; i++) {
     var hashtag = hashtags[i];
 
@@ -260,10 +274,6 @@ function checkValidation(hashtagValue) {
     } else if (hashtag.length > MAX_HASHTAG_LENGTH) {
       return "Максимальная длина одного хэш-тега 20 символов, включая решётку";
     }
-  }
-
-  if (!isHashtagsUnique(hashtags)) {
-    return "Один и тот же хэш-тег не может быть использован дважды";
   }
 
   return null;

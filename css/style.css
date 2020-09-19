@@ -530,8 +530,7 @@ main {
         align-items: center;
   -webkit-box-pack: center;
      -ms-flex-pack: center;
-   justify-content: center;
-transform: scale(1);
+  justify-content: center;
   width: 600px;
   height: 600px;
 
