@@ -699,7 +699,7 @@ main {
 
 .effects__preview--chrome {
   -webkit-filter: grayscale(1);
-          filter: none;
+          filter: grayscale(1);
 }
 
 .effects__preview--sepia {
